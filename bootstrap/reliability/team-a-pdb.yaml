@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: team-a-app-pdb
+  namespace: team-a
+spec:
+  minAvailable: 3
+  selector:
+    matchLabels:
+      app: team-a-app

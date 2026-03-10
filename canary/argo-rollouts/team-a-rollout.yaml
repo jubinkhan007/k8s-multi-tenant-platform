@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: team-a-app
+  namespace: team-a
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: team-a-app
+  template:
+    metadata:
+      labels:
+        app: team-a-app
+    spec:
+      containers:
+      - name: app
+        image: team-a/app:v1
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 20"]
+  strategy:
+    canary:
+      canaryService: team-a-app-canary
+      stableService: team-a-app-stable
+      trafficRouting:
+        istio:
+          virtualService:
+            name: team-a-app
+            routes:
+            - primary
+      steps:
+      - setWeight: 10
+      - pause: {duration: 5m}
+      - setWeight: 50
+      - pause: {duration: 5m}
+      - analysis:
+          templates:
+          - templateName: success-rate
