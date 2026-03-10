@@ -1,0 +1,23 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: team-a
+  name: team-a-developer
+rules:
+- apiGroups: ["", "apps", "batch", "networking.k8s.io"]
+  resources: ["pods", "deployments", "services", "ingresses", "jobs", "cronjobs", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: team-a-developer-binding
+  namespace: team-a
+subjects:
+- kind: Group
+  name: "oidc:team-a-developers" # Assuming OIDC integration
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: team-a-developer
+  apiGroup: rbac.authorization.k8s.io
